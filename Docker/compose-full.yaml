@@ -1,0 +1,61 @@
+# compose-full.yaml - Complete setup with app service (Bao gồm cả Test DB)
+services:
+  # --- DEVELOPMENT DATABASE ---
+  db_dev:
+    image: postgres:16-alpine
+    restart: always
+    shm_size: 128mb
+    env_file:
+      - ../.env # Dùng file .env cho cả dev và test DB
+    ports:
+      - "5432:5432" # Chỉ expose port cho dev DB
+    volumes:
+      - dev_db_data:/var/lib/postgresql/data
+    networks:
+      - hpc_network
+
+  # --- ISOLATED TEST DATABASE (Thêm từ compose.yaml) ---
+  db_test:
+    image: postgres:16-alpine
+    restart: always
+    shm_size: 128mb
+    env_file:
+      - ../.env # Dùng chung file .env
+    # KHÔNG expose port cho test database
+    volumes:
+      - test_db_data:/var/lib/postgresql/data
+    networks:
+      - hpc_network
+
+  # --- NODE.JS APPLICATION ---
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "8001:8001"
+    env_file:
+      - ../.env
+    depends_on:
+      - db_dev # App phụ thuộc vào dev DB để chạy
+    volumes:
+      - ../uploads:/app/uploads
+    networks:
+      - hpc_network
+
+  # --- DATABASE GUI ---
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - hpc_network
+
+volumes:
+  dev_db_data:
+  test_db_data: # Thêm từ compose.yaml
+
+networks:
+  hpc_network:

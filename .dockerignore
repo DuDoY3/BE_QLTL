@@ -1,0 +1,9 @@
+# Bỏ qua thư mục node_modules
+node_modules
+
+# Bỏ qua các file không cần thiết
+.git
+.gitignore
+.env
+.env.test
+dist
